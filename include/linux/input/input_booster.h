@@ -31,8 +31,8 @@ enum booster_device_type {
 };
 
 enum booster_mode {
-	BOOSTER_MODE_OFF = 0,
-	BOOSTER_MODE_ON,
+	BOOSTER_MODE_OFF,
+	BOOSTER_MODE_ON = 0,
 	BOOSTER_MODE_FORCE_OFF,
 };
 

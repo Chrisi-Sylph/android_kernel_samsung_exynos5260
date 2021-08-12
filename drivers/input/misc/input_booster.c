@@ -74,14 +74,6 @@ DECLARE_DVFS_WORK_FUNC(SET, KEY)
 	mutex_lock(&dvfs->lock);
 
 	switch (booster_mode) {
-	case BOOSTER_MODE_ON:
-		cancel_delayed_work(&dvfs->dvfs_off_work);
-		if (!dvfs->lock_status && !dvfs->short_press) {
-			schedule_delayed_work(&dvfs->dvfs_chg_work,
-				msecs_to_jiffies(dvfs->msec_chg_time));
-			dvfs->short_press = true;
-		}
-	break;
 	case BOOSTER_MODE_OFF:
 		if (dvfs->short_press) {
 			cancel_delayed_work(&dvfs->dvfs_chg_work);
@@ -170,14 +162,6 @@ DECLARE_DVFS_WORK_FUNC(SET, TOUCHKEY)
 	}
 
 	switch (booster_mode) {
-	case BOOSTER_MODE_ON:
-		cancel_delayed_work(&dvfs->dvfs_off_work);
-		if (!dvfs->lock_status && !dvfs->short_press) {
-			schedule_delayed_work(&dvfs->dvfs_chg_work,
-							msecs_to_jiffies(dvfs->msec_chg_time));
-			dvfs->short_press = true;
-		}
-	break;
 	case BOOSTER_MODE_OFF:
 		if (dvfs->short_press) {
 			cancel_delayed_work(&dvfs->dvfs_chg_work);
@@ -277,35 +261,6 @@ DECLARE_DVFS_WORK_FUNC(SET, TOUCH)
 	}
 
 	switch (booster_mode) {
-	case BOOSTER_MODE_ON:
-		cancel_delayed_work(&dvfs->dvfs_off_work);
-		cancel_delayed_work(&dvfs->dvfs_chg_work);
-		switch (dvfs->level) {
-		case BOOSTER_LEVEL1:
-		case BOOSTER_LEVEL2:
-			set_qos(&dvfs->cpu_qos, PM_QOS_KFC_FREQ_MIN, dvfs->freqs[BOOSTER_LEVEL1].cpu_freq);
-			set_qos(&dvfs->mif_qos, PM_QOS_BUS_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL1].mif_freq);
-			set_qos(&dvfs->int_qos, PM_QOS_DEVICE_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL1].int_freq);
-		break;
-		case BOOSTER_LEVEL3:
-			set_qos(&dvfs->cpu_qos, PM_QOS_KFC_FREQ_MIN, dvfs->freqs[BOOSTER_LEVEL3].cpu_freq);
-			set_qos(&dvfs->mif_qos, PM_QOS_BUS_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL3].mif_freq);
-			set_qos(&dvfs->int_qos, PM_QOS_DEVICE_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL3].int_freq);
-		break;
-		case BOOSTER_LEVEL4:
-			set_qos(&dvfs->cpu_qos, PM_QOS_KFC_FREQ_MIN, dvfs->freqs[BOOSTER_LEVEL1].cpu_freq);
-			set_qos(&dvfs->mif_qos, PM_QOS_BUS_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL4].mif_freq);
-			set_qos(&dvfs->int_qos, PM_QOS_DEVICE_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL1].int_freq);
-		break;
-		default:
-			dev_err(data->dev, "%s : Undefined type passed[%d]\n", __func__, dvfs->level);
-		break;
-		}
-		DVFS_DEV_DBG(DBG_DVFS, data->dev, "%s : DVFS ON [level %d]\n",	__func__, dvfs->level);
-		schedule_delayed_work(&dvfs->dvfs_chg_work,
-						msecs_to_jiffies(dvfs->msec_chg_time));
-		dvfs->lock_status = true;
-	break;
 	case BOOSTER_MODE_OFF:
 		if (dvfs->lock_status)
 			schedule_delayed_work(&dvfs->dvfs_off_work,
@@ -392,30 +347,6 @@ DECLARE_DVFS_WORK_FUNC(SET, PEN)
 	}
 
 	switch (booster_mode) {
-	case BOOSTER_MODE_ON:
-		cancel_delayed_work(&dvfs->dvfs_off_work);
-		cancel_delayed_work(&dvfs->dvfs_chg_work);
-		switch (dvfs->level) {
-		case BOOSTER_LEVEL1:
-		case BOOSTER_LEVEL2:
-			set_qos(&dvfs->cpu_qos, PM_QOS_KFC_FREQ_MIN, dvfs->freqs[BOOSTER_LEVEL1].cpu_freq);
-			set_qos(&dvfs->mif_qos, PM_QOS_BUS_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL1].mif_freq);
-			set_qos(&dvfs->int_qos, PM_QOS_DEVICE_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL1].int_freq);
-		break;
-		case BOOSTER_LEVEL3:
-			set_qos(&dvfs->cpu_qos, PM_QOS_KFC_FREQ_MIN, dvfs->freqs[BOOSTER_LEVEL3].cpu_freq);
-			set_qos(&dvfs->mif_qos, PM_QOS_BUS_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL3].mif_freq);
-			set_qos(&dvfs->int_qos, PM_QOS_DEVICE_THROUGHPUT, dvfs->freqs[BOOSTER_LEVEL3].int_freq);
-		break;
-		default:
-			dev_err(data->dev, "%s : Undefined type passed[%d]\n", __func__, dvfs->level);
-		break;
-		}
-		DVFS_DEV_DBG(DBG_DVFS, data->dev, "%s : DVFS ON [level %d]\n",	__func__, dvfs->level);
-		schedule_delayed_work(&dvfs->dvfs_chg_work,
-						msecs_to_jiffies(dvfs->msec_chg_time));
-		dvfs->lock_status = true;
-	break;
 	case BOOSTER_MODE_OFF:
 		if (dvfs->lock_status)
 			schedule_delayed_work(&dvfs->dvfs_off_work,
